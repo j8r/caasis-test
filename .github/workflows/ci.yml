@@ -1,12 +1,16 @@
-name: ci
+name: Build
 on:
-  push
+  push:
+    branches: [master, main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_IMAGE: my-image
     steps:
       - uses: actions/checkout@v6
       - name: Set up Docker Buildx
@@ -16,6 +20,8 @@ jobs:
       - name: Push image to Caasis
         run: |-
           gzip -c image.tar > a
-          #| curl -L --data-binary @-
-          echo https://api.caasis.cloud/new | gh pr comment --delete-last ${{ github.head_ref }} -F -
+          # | curl -L --data-binary @-
+          echo https://api.caasis.cloud/new | gh pr comment --create-if-none --edit-last ${{ github.head_ref }} -F -
         if: ${{ github.head_ref }}
+        env:
+          GH_TOKEN: ${{ github.token }}
